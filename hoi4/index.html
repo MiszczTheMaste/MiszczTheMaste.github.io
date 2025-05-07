@@ -1,0 +1,136 @@
+<html>
+    <header>
+<style>
+    body {
+        padding-left: 50px;
+    }
+    .event {
+        width: 581px;
+        border: solid black 2px;
+        margin-bottom: 20px;
+    }
+    pre {
+        font-size: 16px;
+        margin-left: 31px;
+        width: 521px;
+        text-wrap: auto;
+        font-family: 'Times New Roman', Times, serif;
+    }
+    h2 {
+        margin-left: 14px;
+        font-size: 22px;
+    }
+    span {
+        margin-left: 14px;
+        margin-top: 5px;
+    }
+</style>
+    </header>
+    <body>
+    <script>
+async function fetchAndParseEvents(url, localisationUrl, localisationUrl2) {
+  const response = await fetch(url);
+  const text = await response.text();
+
+  const localisationResponse = await fetch(localisationUrl);
+  const localisationText = await localisationResponse.text();
+
+  const localisationEntries = {};
+  localisationText.split('\n').forEach(line => {
+    const match = line.match(/^\s*(\S+):\d?\s+([^\n]+)/);
+    if (match) localisationEntries[match[1]] = match[2].trim().replace(/^"|"$/g, '');
+  });
+
+  const localisationResponse2 = await fetch(localisationUrl2);
+  const localisationText2 = await localisationResponse2.text();
+
+  localisationText2.split('\n').forEach(line => {
+    const match = line.match(/^\s*(\S+):\d?\s+([^\n]+)/);
+    if (match) localisationEntries[match[1]] = match[2].trim().replace(/^"|"$/g, '');
+  });
+
+  const eventBlocks = text.split(/country_event\s*=\s*\{/).slice(1);
+
+const events = eventBlocks.map(block => {
+  const blockWithoutOptions = block.replace(/option\s*=\s*\{[^\}]*country_event[^\}]*\}/g, '');
+
+  const idMatch = blockWithoutOptions.match(/id\s*=\s*(\S+)/);
+  const titleMatch = blockWithoutOptions.match(/title\s*=\s*(\S+)/);
+  const descMatch = blockWithoutOptions.match(/desc\s*=\s*(\S+)/);
+  const pictureMatch = blockWithoutOptions.match(/picture\s*=\s*(\S+)/);
+  const triggeredOnlyMatch = blockWithoutOptions.match(/is_triggered_only\s*=\s*(\S+)/);
+
+  const optionsMatches = [...block.matchAll(/option\s*=\s*\{([^}]+\})/g)];
+  const options = optionsMatches.map(optBlock => {
+    const nameMatch = optBlock[1].match(/name\s*=\s*(\S+)/);
+    return {
+      name: nameMatch ? localisationEntries[nameMatch[1]] || nameMatch[1] : null
+    };
+  });
+
+  return {
+    id: idMatch ? idMatch[1] : null,
+    title: titleMatch ? localisationEntries[titleMatch[1]] || titleMatch[1] : null,
+    description: descMatch ? localisationEntries[descMatch[1]] || descMatch[1] : null,
+    picture: pictureMatch ? pictureMatch[1] : null,
+    isTriggeredOnly: triggeredOnlyMatch ? triggeredOnlyMatch[1] === 'yes' : false,
+    options: options,
+  };
+});
+
+  return events;
+}
+
+const url = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/refs/heads/barrad/events/Barrad%20Events.txt';
+const localisationUrl = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/barrad/localisation/english/country_BAR_l_english.yml';
+const localisationUrl2 = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/refs/heads/barrad/localisation/english/country_BAR_new_l_english.yml';
+
+function renderEvents(events) {
+  const container = document.createElement('div');
+
+  events.forEach(event => {
+    if (event.description !== null) {
+        const eventDiv = document.createElement('div');
+        eventDiv.classList.add('event');
+
+        const title2 = document.createElement('span');
+        title2.textContent = event.id;
+        eventDiv.appendChild(title2);        
+        
+        const title = document.createElement('h2');
+        title.textContent = event.title;
+        eventDiv.appendChild(title);
+
+        const description = document.createElement('pre');
+    description.innerHTML = event.description.replace(/\\n/g, '<br>');
+    eventDiv.appendChild(description);
+
+        const optionsList = document.createElement('ul');
+        event.options.forEach(option => {
+        const optionItem = document.createElement('li');
+        optionItem.textContent = `${option.name}`;
+        optionsList.appendChild(optionItem);
+        });
+
+        eventDiv.appendChild(optionsList);
+        container.appendChild(eventDiv);
+    }
+    
+  });
+
+  document.body.appendChild(container);
+}
+
+fetchAndParseEvents(url, localisationUrl, localisationUrl2)
+  .then(events => {
+    renderEvents(events);
+  })
+  .catch(err => {
+    console.error('Error fetching or parsing events:', err);
+  });
+
+
+    </script>
+    </body>
+
+</html>
