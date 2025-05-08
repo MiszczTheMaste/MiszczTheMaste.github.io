@@ -1,23 +1,27 @@
 <html>
-    <header>
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
-<style>
-  @font-face {
-  font-family: myFirstFont;
-  src: url(aflfont.TTF);
-}
+<header>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+    rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: myFirstFont;
+      src: url(aflfont.TTF);
+    }
 
     body {
-        padding-left: 50px;
+      padding-left: 50px;
     }
+
     .event {
-        width: 581px;
-        border: solid black 2px;
-        margin-bottom: 20px;
-        background-color: #dbd0c3;
+      width: 581px;
+      border: solid black 2px;
+      margin-bottom: 20px;
+      background-color: #dbd0c3;
     }
+
     pre {
       font-size: 14px;
       margin-left: 31px;
@@ -28,20 +32,23 @@
       letter-spacing: -0.32px;
       word-spacing: -0.05;
     }
+
     h2 {
       margin-top: 70px;
-        font-size: 20px;
-        text-align: center;
-        font-family: myFirstFont;
+      font-size: 20px;
+      text-align: center;
+      font-family: myFirstFont;
       letter-spacing: -1.5px;
       word-spacing: -0.05;
       font-weight: normal;
       line-height: 22px;
     }
+
     span {
-        margin-left: 14px;
-        margin-top: 5px;
+      margin-left: 14px;
+      margin-top: 5px;
     }
+
     ul {
       margin-top: 30px;
       list-style: none;
@@ -50,6 +57,7 @@
       padding: 0;
       font-size: 16px;
     }
+
     li {
       height: 40px;
       justify-content: center;
@@ -63,116 +71,116 @@
       margin-bottom: 7px;
       text-align: center;
     }
-</style>
-    </header>
-    <body>
-    <script>
-async function fetchAndParseEvents(url, localisationUrl, localisationUrl2) {
-  const response = await fetch(url);
-  const text = await response.text();
+  </style>
+</header>
 
-  const localisationResponse = await fetch(localisationUrl);
-  const localisationText = await localisationResponse.text();
+<body>
+  <script>
+    async function fetchAndParseEvents(url, localisationUrl, localisationUrl2) {
+      const response = await fetch(url);
+      const text = await response.text();
 
-  const localisationEntries = {};
-  localisationText.split('\n').forEach(line => {
-    const match = line.match(/^\s*(\S+):\d?\s+([^\n]+)/);
-    if (match) localisationEntries[match[1]] = match[2].trim().replace(/^"|"$/g, '');
-  });
+      const localisationResponse = await fetch(localisationUrl);
+      const localisationText = await localisationResponse.text();
 
-  const localisationResponse2 = await fetch(localisationUrl2);
-  const localisationText2 = await localisationResponse2.text();
+      const localisationEntries = {};
+      localisationText.split('\n').forEach(line => {
+        const match = line.match(/^\s*(\S+):\d?\s+([^\n]+)/);
+        if (match) localisationEntries[match[1]] = match[2].trim().replace(/^"|"$/g, '');
+      });
 
-  localisationText2.split('\n').forEach(line => {
-    const match = line.match(/^\s*(\S+):\d?\s+([^\n]+)/);
-    if (match) localisationEntries[match[1]] = match[2].trim().replace(/^"|"$/g, '');
-  });
+      const localisationResponse2 = await fetch(localisationUrl2);
+      const localisationText2 = await localisationResponse2.text();
 
-  const eventBlocks = text.split(/country_event\s*=\s*\{/).slice(1);
+      localisationText2.split('\n').forEach(line => {
+        const match = line.match(/^\s*(\S+):\d?\s+([^\n]+)/);
+        if (match) localisationEntries[match[1]] = match[2].trim().replace(/^"|"$/g, '');
+      });
 
-const events = eventBlocks.map(block => {
-  const blockWithoutOptions = block.replace(/option\s*=\s*\{[^\}]*country_event[^\}]*\}/g, '');
+      const eventBlocks = text.split(/^country_event\s*=\s*\{/m).slice(1);
 
-  const idMatch = blockWithoutOptions.match(/id\s*=\s*(\S+)/);
-  const titleMatch = blockWithoutOptions.match(/title\s*=\s*(\S+)/);
-  const descMatch = blockWithoutOptions.match(/desc\s*=\s*(\S+)/);
-  const pictureMatch = blockWithoutOptions.match(/picture\s*=\s*(\S+)/);
-  const triggeredOnlyMatch = blockWithoutOptions.match(/is_triggered_only\s*=\s*(\S+)/);
+      const events = eventBlocks.map(block => {
+        console.log(block);
+        const idMatch = block.match(/id\s*=\s*(\S+)/);
+        const titleMatch = block.match(/title\s*=\s*(\S+)/);
+        const descMatch = block.match(/desc\s*=\s*(\S+)/);
+        const pictureMatch = block.match(/picture\s*=\s*(\S+)/);
+        const triggeredOnlyMatch = block.match(/is_triggered_only\s*=\s*(\S+)/);
 
-  const optionsMatches = [...block.matchAll(/option\s*=\s*\{([^}]+\})/g)];
-  const options = optionsMatches.map(optBlock => {
-    const nameMatch = optBlock[1].match(/name\s*=\s*(\S+)/);
-    return {
-      name: nameMatch ? localisationEntries[nameMatch[1]] || nameMatch[1] : null
-    };
-  });
-
-  return {
-    id: idMatch ? idMatch[1] : null,
-    title: titleMatch ? localisationEntries[titleMatch[1]] || titleMatch[1] : null,
-    description: descMatch ? localisationEntries[descMatch[1]] || descMatch[1] : null,
-    picture: pictureMatch ? pictureMatch[1] : null,
-    isTriggeredOnly: triggeredOnlyMatch ? triggeredOnlyMatch[1] === 'yes' : false,
-    options: options,
-  };
-});
-
-  return events;
-}
-
-const url = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/refs/heads/barrad/events/Barrad%20Events.txt';
-const localisationUrl = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/barrad/localisation/english/country_BAR_l_english.yml';
-const localisationUrl2 = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/refs/heads/barrad/localisation/english/country_BAR_new_l_english.yml';
-
-function renderEvents(events) {
-  const container = document.createElement('div');
-
-  events.forEach(event => {
-    if (event.description !== null) {
-        const eventDiv = document.createElement('div');
-        eventDiv.classList.add('event');
-
-
-        
-        const title = document.createElement('h2');
-        title.textContent = event.title;
-        eventDiv.appendChild(title);
-
-        const description = document.createElement('pre');
-        description.innerHTML = event.description.replace(/\\n/g, '<br>');
-        eventDiv.appendChild(description);
-
-        const optionsList = document.createElement('ul');
-        event.options.forEach(option => {
-        const optionItem = document.createElement('li');
-        optionItem.textContent = `${option.name}`;
-        optionsList.appendChild(optionItem);
+        const optionsMatches = [...block.matchAll(/option\s*=\s*\{([^}]+\})/g)];
+        const options = optionsMatches.map(optBlock => {
+          const nameMatch = optBlock[1].match(/name\s*=\s*(\S+)/);
+          return {
+            name: nameMatch ? localisationEntries[nameMatch[1]] || nameMatch[1] : null
+          };
         });
 
-        eventDiv.appendChild(optionsList);
+        return {
+          id: idMatch ? idMatch[1] : null,
+          title: titleMatch ? localisationEntries[titleMatch[1]] || titleMatch[1] : null,
+          description: descMatch ? localisationEntries[descMatch[1]] || descMatch[1] : null,
+          picture: pictureMatch ? pictureMatch[1] : null,
+          isTriggeredOnly: triggeredOnlyMatch ? triggeredOnlyMatch[1] === 'yes' : false,
+          options: options,
+        };
+      });
 
-        const title2 = document.createElement('span');
-        title2.textContent = event.id;
-        eventDiv.appendChild(title2);        
-
-        container.appendChild(eventDiv);
+      return events;
     }
-    
-  });
 
-  document.body.appendChild(container);
-}
+    const url = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/refs/heads/barrad/events/Barrad%20Events.txt';
+    const localisationUrl = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/barrad/localisation/english/country_BAR_l_english.yml';
+    const localisationUrl2 = 'https://raw.githubusercontent.com/MiszczTheMaste/equestria_dev/refs/heads/barrad/localisation/english/country_BAR_new_l_english.yml';
 
-fetchAndParseEvents(url, localisationUrl, localisationUrl2)
-  .then(events => {
-    renderEvents(events);
-  })
-  .catch(err => {
-    console.error('Error fetching or parsing events:', err);
-  });
+    function renderEvents(events) {
+      const container = document.createElement('div');
+
+      events.forEach(event => {
+        if (event.description !== null) {
+          const eventDiv = document.createElement('div');
+          eventDiv.classList.add('event');
 
 
-    </script>
-    </body>
+
+          const title = document.createElement('h2');
+          title.textContent = event.title;
+          eventDiv.appendChild(title);
+
+          const description = document.createElement('pre');
+          description.innerHTML = event.description.replace(/\\n/g, '<br>');
+          eventDiv.appendChild(description);
+
+          const optionsList = document.createElement('ul');
+          event.options.forEach(option => {
+            const optionItem = document.createElement('li');
+            optionItem.textContent = `${option.name}`;
+            optionsList.appendChild(optionItem);
+          });
+
+          eventDiv.appendChild(optionsList);
+
+          const title2 = document.createElement('span');
+          title2.textContent = event.id;
+          eventDiv.appendChild(title2);
+
+          container.appendChild(eventDiv);
+        }
+
+      });
+
+      document.body.appendChild(container);
+    }
+
+    fetchAndParseEvents(url, localisationUrl, localisationUrl2)
+      .then(events => {
+        renderEvents(events);
+      })
+      .catch(err => {
+        console.error('Error fetching or parsing events:', err);
+      });
+
+
+  </script>
+</body>
 
 </html>
