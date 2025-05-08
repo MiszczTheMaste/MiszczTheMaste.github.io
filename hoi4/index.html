@@ -98,6 +98,34 @@
         if (match) localisationEntries[match[1]] = match[2].trim().replace(/^"|"$/g, '');
       });
 
+
+      const findMatchingBrackets = (str, startIdx) => {
+        let depth = 0;
+        for (let i = startIdx; i < str.length; i++) {
+          if (str[i] === '{') depth++;
+          else if (str[i] === '}') {
+            depth--;
+            if (depth === 0) return i;
+          }
+        }
+        return -1;
+      };
+
+      const extractOptionBlocks = block => {
+        const optionBlocks = [];
+        let regex = /option\s*=\s*\{/g;
+        let match;
+        while ((match = regex.exec(block)) !== null) {
+          const start = match.index + match[0].length;
+          const end = findMatchingBrackets(block, match.index + match[0].indexOf('{'));
+          if (end !== -1) {
+            optionBlocks.push(block.substring(start, end));
+            regex.lastIndex = end;
+          }
+        }
+        return optionBlocks;
+      };
+
       const eventBlocks = text.split(/^country_event\s*=\s*\{/m).slice(1);
 
       const events = eventBlocks.map(block => {
@@ -108,10 +136,15 @@
         const triggeredOnlyMatch = block.match(/is_triggered_only\s*=\s*(\S+)/);
         const hiddenMatch = block.match(/hidden\s*=\s*(\S+)/);
 
-        const optionsMatches = [...block.matchAll(/option\s*=\s*\{([^}]+\})/g)];
-        const options = optionsMatches.map(optBlock => {
-          const nameMatch = optBlock[1].match(/name\s*=\s*(\S+)/);
-          const nextEventIds = [...optBlock[1].matchAll(/country_event\s*=\s*\{[^}]*id\s*=\s*(\S+)/g)].map(m => m[1]);
+        const optionsRaw = extractOptionBlocks(block);
+        const options = optionsRaw.map(content => {
+          const nameMatch = content.match(/name\s*=\s*(\S+)/);
+          const innerBlocks = [...content.matchAll(/country_event\s*=\s*\{([\s\S]*?)\}/g)];
+          const nextEventIds = innerBlocks.map(b => {
+            const idMatch = b[1].match(/id\s*=\s*(\S+)/);
+            return idMatch ? idMatch[1] : null;
+          }).filter(Boolean);
+
           return {
             name: nameMatch ? localisationEntries[nameMatch[1]] || nameMatch[1] : null,
             nextEventIds: nextEventIds
@@ -140,7 +173,6 @@
       const container = document.createElement('div');
 
       events.forEach(event => {
-        console.log(event);
         if (event.isHidden === false) {
           const eventDiv = document.createElement('div');
           eventDiv.classList.add('event');
@@ -166,8 +198,8 @@
             const optionItem = document.createElement('li');
             optionItem.innerHTML = `${option.name}`;
             const nextEventsInfo = option.nextEventIds.length > 0
-            ? `<br><em>(Triggers: ${option.nextEventIds.join(', ')})</em>`
-            : '';
+              ? `<br><em>(Triggers: ${option.nextEventIds.join(', ')})</em>`
+              : '';
 
             optionItem.innerHTML += nextEventsInfo;
             optionsList.appendChild(optionItem);
