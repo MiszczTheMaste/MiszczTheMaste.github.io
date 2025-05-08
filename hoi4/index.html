@@ -1,6 +1,14 @@
 <html>
     <header>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+  font-family: myFirstFont;
+  src: url(aflfont.TTF);
+}
+
     body {
         padding-left: 50px;
     }
@@ -8,21 +16,52 @@
         width: 581px;
         border: solid black 2px;
         margin-bottom: 20px;
+        background-color: #dbd0c3;
     }
     pre {
-        font-size: 16px;
-        margin-left: 31px;
-        width: 521px;
-        text-wrap: auto;
-        font-family: 'Times New Roman', Times, serif;
+      font-size: 14px;
+      margin-left: 31px;
+      width: 512px;
+      text-wrap: auto;
+      font-family: myFirstFont;
+      line-height: 16px;
+      letter-spacing: -0.32px;
+      word-spacing: -0.05;
     }
     h2 {
-        margin-left: 14px;
-        font-size: 22px;
+      margin-top: 70px;
+        font-size: 20px;
+        text-align: center;
+        font-family: myFirstFont;
+      letter-spacing: -1.5px;
+      word-spacing: -0.05;
+      font-weight: normal;
+      line-height: 22px;
     }
     span {
         margin-left: 14px;
         margin-top: 5px;
+    }
+    ul {
+      margin-top: 30px;
+      list-style: none;
+      margin-left: 215px;
+      width: 325px;
+      padding: 0;
+      font-size: 16px;
+    }
+    li {
+      height: 40px;
+      justify-content: center;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      font-family: "Ubuntu", sans-serif;
+      font-weight: bold;
+      color: #fff;
+      background-color: #474841;
+      margin-bottom: 7px;
+      text-align: center;
     }
 </style>
     </header>
@@ -93,17 +132,15 @@ function renderEvents(events) {
         const eventDiv = document.createElement('div');
         eventDiv.classList.add('event');
 
-        const title2 = document.createElement('span');
-        title2.textContent = event.id;
-        eventDiv.appendChild(title2);        
+
         
         const title = document.createElement('h2');
         title.textContent = event.title;
         eventDiv.appendChild(title);
 
         const description = document.createElement('pre');
-    description.innerHTML = event.description.replace(/\\n/g, '<br>');
-    eventDiv.appendChild(description);
+        description.innerHTML = event.description.replace(/\\n/g, '<br>');
+        eventDiv.appendChild(description);
 
         const optionsList = document.createElement('ul');
         event.options.forEach(option => {
@@ -113,6 +150,11 @@ function renderEvents(events) {
         });
 
         eventDiv.appendChild(optionsList);
+
+        const title2 = document.createElement('span');
+        title2.textContent = event.id;
+        eventDiv.appendChild(title2);        
+
         container.appendChild(eventDiv);
     }
     
