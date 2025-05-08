@@ -100,12 +100,12 @@
       const eventBlocks = text.split(/^country_event\s*=\s*\{/m).slice(1);
 
       const events = eventBlocks.map(block => {
-        console.log(block);
         const idMatch = block.match(/id\s*=\s*(\S+)/);
         const titleMatch = block.match(/title\s*=\s*(\S+)/);
         const descMatch = block.match(/desc\s*=\s*(\S+)/);
         const pictureMatch = block.match(/picture\s*=\s*(\S+)/);
         const triggeredOnlyMatch = block.match(/is_triggered_only\s*=\s*(\S+)/);
+        const hiddenMatch = block.match(/hidden\s*=\s*(\S+)/);
 
         const optionsMatches = [...block.matchAll(/option\s*=\s*\{([^}]+\})/g)];
         const options = optionsMatches.map(optBlock => {
@@ -121,7 +121,8 @@
           description: descMatch ? localisationEntries[descMatch[1]] || descMatch[1] : null,
           picture: pictureMatch ? pictureMatch[1] : null,
           isTriggeredOnly: triggeredOnlyMatch ? triggeredOnlyMatch[1] === 'yes' : false,
-          options: options,
+          isHidden: hiddenMatch ? hiddenMatch[1] === 'yes' : false,
+          options: options
         };
       });
 
@@ -136,7 +137,8 @@
       const container = document.createElement('div');
 
       events.forEach(event => {
-        if (event.description !== null) {
+        console.log(event);
+        if (event.isHidden === false) {
           const eventDiv = document.createElement('div');
           eventDiv.classList.add('event');
 
@@ -146,8 +148,14 @@
           title.textContent = event.title;
           eventDiv.appendChild(title);
 
+
           const description = document.createElement('pre');
-          description.innerHTML = event.description.replace(/\\n/g, '<br>');
+          if (event.description === null) {
+            description.innerHTML = 'description not found';
+          } else {
+            description.innerHTML = event.description.replace(/\\n/g, '<br>');
+          }
+
           eventDiv.appendChild(description);
 
           const optionsList = document.createElement('ul');
@@ -164,7 +172,9 @@
           eventDiv.appendChild(title2);
 
           container.appendChild(eventDiv);
+
         }
+
 
       });
 
