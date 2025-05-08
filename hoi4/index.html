@@ -63,7 +63,6 @@
       height: 40px;
       justify-content: center;
       background: #f0f0f0;
-      display: flex;
       align-items: center;
       font-family: "Ubuntu", sans-serif;
       font-weight: bold;
@@ -71,6 +70,7 @@
       background-color: #474841;
       margin-bottom: 7px;
       text-align: center;
+      display: block;
     }
   </style>
 </header>
@@ -111,8 +111,10 @@
         const optionsMatches = [...block.matchAll(/option\s*=\s*\{([^}]+\})/g)];
         const options = optionsMatches.map(optBlock => {
           const nameMatch = optBlock[1].match(/name\s*=\s*(\S+)/);
+          const nextEventIds = [...optBlock[1].matchAll(/country_event\s*=\s*\{[^}]*id\s*=\s*(\S+)/g)].map(m => m[1]);
           return {
-            name: nameMatch ? localisationEntries[nameMatch[1]] || nameMatch[1] : null
+            name: nameMatch ? localisationEntries[nameMatch[1]] || nameMatch[1] : null,
+            nextEventIds: nextEventIds
           };
         });
 
@@ -162,7 +164,12 @@
           const optionsList = document.createElement('ul');
           event.options.forEach(option => {
             const optionItem = document.createElement('li');
-            optionItem.textContent = `${option.name}`;
+            optionItem.innerHTML = `${option.name}`;
+            const nextEventsInfo = option.nextEventIds.length > 0
+            ? `<br><em>(Triggers: ${option.nextEventIds.join(', ')})</em>`
+            : '';
+
+            optionItem.innerHTML += nextEventsInfo;
             optionsList.appendChild(optionItem);
           });
 
